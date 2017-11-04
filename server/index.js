@@ -14,6 +14,7 @@ app.use(session({
   saveUninitialized: false,
   resave: false,
 }));
+app.use(express.static(`${__dirname}/../build`));
 
 function checkLoggedIn(req, res, next) {
   if (req.session.user) {
@@ -32,6 +33,7 @@ app.post('/login', (req, res) => {
   const auth0Url = 'https://' + process.env.REACT_APP_AUTH0_DOMAIN + '/tokeninfo';
   axios.post(auth0Url, { id_token: idToken }).then(response => {
     const userData = response.data;
+    console.log('userData', userData);
     app.get('db').find_user_by_auth0_id(userData.user_id).then(users => {
       if (users.length) {
         req.session.user = users[0];
