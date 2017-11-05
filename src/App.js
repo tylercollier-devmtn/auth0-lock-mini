@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
+import Auth0Lock from 'auth0-lock';
 import axios from 'axios';
 
 class App extends Component {
@@ -8,13 +9,31 @@ class App extends Component {
     user: null,
     secureDataResponse: null
   };
+  lock = null;
+
+  componentDidMount() {
+    this.lock = new Auth0Lock(process.env.REACT_APP_AUTH0_CLIENT_ID, process.env.REACT_APP_AUTH0_DOMAIN);
+    this.lock.on('authenticated', this.onAuthenticated);
+    axios.get('/user-data').then(response => {
+      this.setState({ user: response.data.user || null });
+    });
+  }
+
+  onAuthenticated = (authResult) => {
+    console.log('authResult', authResult);
+    axios.post('/login', { idToken: authResult.idToken} ).then(response => {
+      this.setState({ user: response.data.user });
+    })
+  };
 
   login = () => {
-    
+    this.lock.show();
   };
 
   logout = () => {
-    
+    axios.post('/logout').then(() => {
+      this.setState({ user: null });
+    });
   };
 
   getMessage = error => error.response
