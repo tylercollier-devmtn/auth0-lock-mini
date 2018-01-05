@@ -29,11 +29,13 @@ app.get('/secure-data', checkLoggedIn, (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  const { idToken } = req.body;
-  const auth0Url = 'https://' + process.env.REACT_APP_AUTH0_DOMAIN + '/tokeninfo';
-  axios.post(auth0Url, { id_token: idToken }).then(response => {
+  const { accessToken } = req.body;
+  const auth0Url = 'https://' + process.env.REACT_APP_AUTH0_DOMAIN + '/userinfo';
+  axios.get(auth0Url, {
+    headers: { authorization: 'Bearer ' + accessToken },
+  }).then(response => {
     const userData = response.data;
-    app.get('db').find_user_by_auth0_id(userData.user_id).then(users => {
+    app.get('db').find_user_by_auth0_id(userData.sub).then(users => {
       if (users.length) {
         req.session.user = users[0];
         res.json({ user: req.session.user });

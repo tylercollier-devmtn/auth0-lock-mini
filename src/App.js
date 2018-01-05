@@ -21,9 +21,9 @@ class App extends Component {
 
   onAuthenticated = (authResult) => {
     console.log('authResult', authResult);
-    axios.post('/login', { idToken: authResult.idToken} ).then(response => {
+    axios.post('/login', { accessToken: authResult.accessToken} ).then(response => {
       this.setState({ user: response.data.user });
-    })
+    });
   };
 
   login = () => {
