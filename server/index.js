@@ -33,7 +33,6 @@ app.post('/login', (req, res) => {
   const auth0Url = 'https://' + process.env.REACT_APP_AUTH0_DOMAIN + '/tokeninfo';
   axios.post(auth0Url, { id_token: idToken }).then(response => {
     const userData = response.data;
-    console.log('userData', userData);
     app.get('db').find_user_by_auth0_id(userData.user_id).then(users => {
       if (users.length) {
         req.session.user = users[0];
@@ -72,7 +71,7 @@ app.get('/secure-data', checkLoggedIn, (req, res) => {
   res.json({ someSecureData: 123 });
 });
 
-const PORT = 3030;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log('Server listening on port ' + PORT);
 });

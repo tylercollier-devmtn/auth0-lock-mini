@@ -2,6 +2,7 @@
   "name": "auth0-lock-demo",
   "version": "0.1.0",
   "private": true,
+  "main": "server/index.js",
   "dependencies": {
     "auth0-lock": "^10.23.1",
     "axios": "^0.16.2",
@@ -19,6 +20,5 @@
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "now-start": "node server/index.js"
-  },
-  "proxy": "http://localhost:3030"
+  }
 }
