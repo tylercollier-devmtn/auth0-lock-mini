@@ -16,18 +16,6 @@ app.use(session({
 }));
 app.use(express.static(`${__dirname}/../build`));
 
-function checkLoggedIn(req, res, next) {
-  if (req.session.user) {
-    next();
-  } else {
-    res.status(403).json({ message: 'Unauthorized' });
-  }
-}
-
-app.get('/secure-data', checkLoggedIn, (req, res) => {
-  res.json({ someSecureData: 123 });
-});
-
 app.post('/login', (req, res) => {
   const { accessToken } = req.body;
   const auth0Url = 'https://' + process.env.REACT_APP_AUTH0_DOMAIN + '/userinfo';

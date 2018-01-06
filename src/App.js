@@ -68,11 +68,11 @@ class App extends Component {
           </div>
           <div className="section">
             <h2>User data:</h2>
-            <div>{userData}</div>
+            <div><pre>{userData}</pre></div>
           </div>
           <div className="section">
             <button onClick={this.fetchSecureData}>Fetch secure data</button>
-            <div>{secureDataResponse}</div>
+            <div><pre>{secureDataResponse}</pre></div>
           </div>
         </div>
       </div>
