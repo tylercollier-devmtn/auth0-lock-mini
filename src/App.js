@@ -1,36 +1,17 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
-import Auth0Lock from 'auth0-lock';
 import axios from 'axios';
 
 class App extends Component {
-  state = {
-    user: null,
-    secureDataResponse: null
-  };
-  lock = null;
-
-  componentDidMount() {
-    this.lock = new Auth0Lock(process.env.REACT_APP_AUTH0_CLIENT_ID, process.env.REACT_APP_AUTH0_DOMAIN);
-    this.lock.on('authenticated', this.onAuthenticated);
-    axios.get('/user-data').then(response => {
-      this.setState({ user: response.data.user || null });
-    });
+  constructor() {
+    super();
+    this.state = {};
+    this.logout = this.logout.bind(this);
+    this.fetchSecureData = this.fetchSecureData.bind(this);
   }
 
-  onAuthenticated = (authResult) => {
-    console.log('authResult', authResult);
-    axios.post('/login', { accessToken: authResult.accessToken} ).then(response => {
-      this.setState({ user: response.data.user });
-    });
-  };
-
-  login = () => {
-    this.lock.show();
-  };
-
-  logout = () => {
+  logout() {
     axios.post('/logout').then(() => {
       this.setState({ user: null });
     });
@@ -42,7 +23,7 @@ class App extends Component {
       : JSON.stringify(error.response.data, null, 2)
     : error.message;
 
-  fetchSecureData = () => {
+  fetchSecureData() {
     axios.get('/secure-data').then(response => {
       this.setState({ secureDataResponse: JSON.stringify(response.data, null, 2) });
     }).catch(error => {
@@ -68,7 +49,7 @@ class App extends Component {
           </div>
           <div className="section">
             <h2>User data:</h2>
-            <div><pre>{userData}</pre></div>
+            <div><pre>{userData || 'null'}</pre></div>
           </div>
           <div className="section">
             <button onClick={this.fetchSecureData}>Fetch secure data</button>

@@ -17,27 +17,7 @@ app.use(session({
 app.use(express.static(`${__dirname}/../build`));
 
 app.post('/login', (req, res) => {
-  const { accessToken } = req.body;
-  const auth0Url = 'https://' + process.env.REACT_APP_AUTH0_DOMAIN + '/userinfo';
-  axios.get(auth0Url, {
-    headers: { authorization: 'Bearer ' + accessToken },
-  }).then(response => {
-    const userData = response.data;
-    app.get('db').find_user_by_auth0_id(userData.sub).then(users => {
-      if (users.length) {
-        req.session.user = users[0];
-        res.json({ user: req.session.user });
-      } else {
-        app.get('db').create_user([userData.user_id, userData.email]).then((newUsers) => {
-          req.session.user = newUsers[0];
-          res.json({ user: req.session.user });
-        })
-      }
-    })
-  }).catch(error => {
-    console.log('error A', error);
-    res.status(500).json({ message: "An error occurred; for security reasons it can't be disclosed" });
-  });
+  // Add code here
 });
 
 app.post('/logout', (req, res) => {
