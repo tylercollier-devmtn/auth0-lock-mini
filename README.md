@@ -105,6 +105,7 @@ In this step, we'll add a handler for when someone clicks the Log in button, and
   * In the method, make an axios POST to `/login`. Send as the body an object with a property named `idToken`. The value should be the `idToken` from `authResult`.
 * Add a `login` prototype method.
   * Show the Lock screen with `this.lock.show()`.
+  * Bind the `login` prototype method in the constructor. 
 
 ### Solution
 
@@ -115,6 +116,7 @@ In this step, we'll add a handler for when someone clicks the Log in button, and
 class App extends Component {
   constructor() {
     // ...
+    this.login = this.login.bind(this);
     this.onAuthenticated = this.onAuthenticated.bind(this);
   }
   
