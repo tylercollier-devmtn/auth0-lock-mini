@@ -40,6 +40,12 @@ In this step, we'll go to `manage.auth0.com` to create an account. We'll create 
 * Back at the top of the settings, copy the domain and client ID to your project's `.env` file. Be sure to restart your React web dev server to use these values.
 * On the Auth0 website, click on Connections on the left hand side navigation, and then Social.
   * Enable the Github connection.
+  * Then click the Github connection to configure it. In the Attributes section, check Email address. Click Save.
+* Click on APIs on the left hand side navigation. Click Create API. Set the friendly name to `management`, and set the identifier to `management` too. Click Create.
+  * In the Settings tab, set the Token Expiration to 7776000 (90 days). Click Save.
+  * In the Scopes tab, add a scope for `read:users` with a description of `Read Users`, and a scope for `read:user_idp_tokens` with a description of `Read Users IDP tokens`.
+  * On the Non Interactive Clients tab, you'll notice that one of the clients in the list was created for you, and was named `management (Test Client)`. Ensure it's Authorized.
+  * Down in the Response section, copy the access token to the `.env` file as the AUTH0_MANAGEMENT_ACCESS_TOKEN.
 
 ## Step 2
 
@@ -102,7 +108,9 @@ In this step, we'll add a handler for when someone clicks the Log in button, and
 * Bind the `onAuthenticated` prototype method in the constructor.
 * In the previous step, we set up the handler for `this.lock.on('authenticated')`. Create that method.
   * It should take in a variable named `authResult`.
-  * In the method, make an axios POST to `/login`. Send as the body an object with a property named `idToken`. The value should be the `idToken` from `authResult`.
+  * Make a call to `this.lock.getUserInfo()`, passing in the `accessToken` value from `authResult`, and an arrow function callback that takes an `error` parameter and a `user` parameter.
+    * In the callback, if there is an error, be sure to log it to the console for your debugging convenience.
+    * Otherwise, make an axios POST to `/login`. Send as the body an object with a property named `userId`. The value should be the `sub` from `user`. Take the `user` value from the response data and set it as the React `user` state.
 * Add a `login` prototype method.
   * Show the Lock screen with `this.lock.show()`.
 
@@ -121,9 +129,15 @@ class App extends Component {
   // ...
 
   onAuthenticated(authResult) {
-    axios.post('/login', { idToken: authResult.idToken} ).then(response => {
-      this.setState({ user: response.data.user });
-    })
+    this.lock.getUserInfo(authResult.accessToken, (error, user) => {
+      if (error) {
+        console.error(error);
+        return;
+      }
+      axios.post('/login', { idToken: authResult.idToken} ).then(response => {
+        this.setState({ user: response.data.user });
+      });
+    });
   };
 
   login() {
@@ -142,10 +156,10 @@ In this step, we'll handle the authentication on the server side.
 
 * Open the `server/index.js` file.
 * Navigate to the code for the `/login` endpoint.
-* Destructure the `idToken` value from the request body.
-* Construct a variable named `auth0Url` that looks like this: `https://<YOUR AUTH0 DOMAIN>/tokeninfo`. Use `process.env.<ENV VARIABLE NAME HERE>` to get the domain.
-* Make an axios POST to that URL, sending the id token in a property called `id_token`.
-    * First, put a `.catch()` on that call. If there's an error, it likely represents an invalid login. Simply return a 500 with a message.
+* Destructure the `userId` value from the request body.
+* Construct a variable named `auth0Url` that looks like this: `https://<YOUR AUTH0 DOMAIN>/api/v2/users/{userId}`. Use `process.env.<ENV VARIABLE NAME HERE>` to get the domain.
+* Make an axios GET to that URL. You'll need to set the Authorization header to equal `Bearer ${X}`, where X is the Auth0 management access token environment variable.
+    * Put a `.catch()` on the end of that call. If there's an error, it likely represents an invalid login. Simply return a 500 with a message.
     * The response data will include a property called `user_id`. Use that and `db/find_user_by_auth0_id.sql` to look up the user in the database.
     * If a user is found, create a `user` object on the session that is that user object from the database, and send back a response with that user in a property called `user`.
     * If the user is not found, it means they have never logged in before. This is conceptually a "register" situation. Use the `user_id` and `email` field from the response to create a user record. The `db/create_user.sql` file will be helpful for this.
@@ -158,9 +172,9 @@ In this step, we'll handle the authentication on the server side.
 
 ```js
 app.post('/login', (req, res) => {
-  const { idToken } = req.body;
-  const auth0Url = 'https://' + process.env.REACT_APP_AUTH0_DOMAIN + '/tokeninfo';
-  axios.post(auth0Url, { id_token: idToken }).then(response => {
+  const { userId } = req.body;
+  const auth0Url = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/users/${userId}`;
+  axios.get(auth0Url, { headers: { Authorization: 'Bearer ' + process.env.AUTH0_MANAGEMENT_ACCESS_TOKEN } }).then(response => {
     const userData = response.data;
     app.get('db').find_user_by_auth0_id(userData.user_id).then(users => {
       if (users.length) {
