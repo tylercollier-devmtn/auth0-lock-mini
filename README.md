@@ -24,6 +24,7 @@ In this step, we'll go to `manage.auth0.com` to create an account. We'll create 
 
 * Go to `manage.auth0.com`.
 * Register for an account.
+  * For a tenant name, choose something professional-ish like your name or company name, e.g. `tylercollier` or `mycompanyname`.
   * Set the account type to `Personal`.
   * Set the role to `Developer`.
   * Set the project to `Just playing around`.
