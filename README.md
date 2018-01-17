@@ -45,8 +45,10 @@ In this step, we'll go to `manage.auth0.com` to create an account. We'll create 
 * Click on APIs on the left hand side navigation. Click Create API. Set the friendly name to `management`, and set the identifier to `management` too. Click Create.
   * In the Settings tab, set the Token Expiration to 7776000 (90 days). Click Save.
   * In the Scopes tab, add a scope for `read:users` with a description of `Read Users`, and a scope for `read:user_idp_tokens` with a description of `Read Users IDP tokens`.
-  * On the Non Interactive Clients tab, you'll notice that one of the clients in the list was created for you, and was named `management (Test Client)`. Ensure it's Authorized.
-  * Down in the Response section, copy the access token to the `.env` file as the AUTH0_MANAGEMENT_ACCESS_TOKEN.
+  * On the Non Interactive Clients tab, you'll notice that one of the clients in the list was created for you, and was named `management (Test Client)`. Ensure it's Authorized. Click the dropdown next to the word "Authorized". In the Scopes section, ensure you see the two scopes we created earlier, and that they have checkmarks next to them. If not, click them to set the checkmarks and click Update.
+  * On the Test tab, at the top, look for "Please select the application you would like to test", and choose `management (Test Client)`. Down in the Response section, copy the access token to the `.env` file as the AUTH0_MANAGEMENT_ACCESS_TOKEN.
+    * Tip: There is a Copy Token button, which is handy.
+    * The access token that you're copying is a JSON Web Token (JWT). Ensure that embedded in it are the scopes we created earlier. To do this, look for the link just under the Response section that says "You can inspect how this token is built at jwt.io". The jwt.io part is a link to https://jwt.io, owned by Auth0, and will show you the token on the left, and the decoded version of the token on the right. Look  for the `"scope": "read:user_idp_tokens read:users"` in the Payload section on the right (purple).
 
 ## Step 2
 
@@ -135,7 +137,7 @@ class App extends Component {
         console.error(error);
         return;
       }
-      axios.post('/login', { idToken: authResult.idToken} ).then(response => {
+      axios.post('/login', { userId: user.sub } ).then(response => {
         this.setState({ user: response.data.user });
       });
     });
@@ -195,6 +197,14 @@ app.post('/login', (req, res) => {
 });
 ```
 </details>
+
+## Flow diagram
+
+If you'd like a visual of the information flow, see `docs/diagram.jpg`.
+
+## Production
+
+Above, we chose to make the Auth0 Management token expire in 7776000 seconds, or 90 days. This is a balance between convenience during development and a security risk of long lasting tokens. A better strategy is to make the token last for 24 hours, and have an automated process to refresh it every 24 hours. You can read more on the [Auth0 Docs site](https://auth0.com/docs/api/management/v2/tokens#automate-the-process).
 
 ## Contributions
 
